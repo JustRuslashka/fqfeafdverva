@@ -1,0 +1,164 @@
+import 'dartconvert';
+import 'packagefluttermaterial.dart';
+import 'packagehttphttp.dart' as http;
+import 'packagecharts_flutterflutter.dart' as charts;
+
+class MyData {
+  final int id;
+  final String title;
+  final String subtitle;
+
+  MyData({required this.id, required this.title, required this.subtitle});
+
+  String get value = subtitle;
+}
+
+class Data {
+  final String title;
+  final double value;
+  final int id;
+
+  Data(this.title, this.value, this.id);
+}
+
+void main() = runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title 'Charts Demo',
+      theme ThemeData(
+        primarySwatch Colors.blue,
+      ),
+      home LoginPage(),
+    );
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() = _LoginPageState();
+}
+
+class _LoginPageState extends StateLoginPage {
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar AppBar(
+        title Text('Login Page'),
+      ),
+      body Padding(
+        padding EdgeInsets.all(16.0),
+        child Column(
+          mainAxisAlignment MainAxisAlignment.center,
+          children [
+            TextField(
+              controller _nameController,
+              decoration InputDecoration(
+                hintText 'Enter name',
+              ),
+            ),
+            SizedBox(height 16.0),
+            TextField(
+              controller _passwordController,
+              obscureText true,
+              decoration InputDecoration(
+                hintText 'Enter password',
+              ),
+            ),
+            SizedBox(height 16.0),
+            ElevatedButton(
+              onPressed () {
+                if (_nameController.text == 'admin' &&
+                    _passwordController.text == 'admin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder (context) = ChartPage()),
+                  );
+                }
+              },
+              child Text('Login'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChartPage extends StatefulWidget {
+  @override
+  _ChartPageState createState() = _ChartPageState();
+}
+
+class _ChartPageState extends StateChartPage {
+  ListMyData _dataList = [];
+  ListData _chartData = [];
+
+  FutureListMyData fetchData() async {
+    final response =
+        await http.get(Uri.parse('httpscnc.kovalev.teamget5'));
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      return ListMyData.from(jsonData.map((data) = MyData(
+          id data['id'], title data['title'], subtitle data['subtitle'])));
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData().then((data) {
+      setState(() {
+        _dataList = data;
+        _chartData = data
+            .map((e) = Data(e.title, double.parse(e.value), e.id))
+            .toList();
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar AppBar(
+        title Text('Data chart'),
+      ),
+      body Center(
+        child _chartData.isNotEmpty
+             ChartWidget(chartData _chartData)
+             CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class ChartWidget extends StatelessWidget {
+  final ListData chartData;
+
+  ChartWidget({required this.chartData});
+
+  @override
+  Widget build(BuildContext context) {
+    Listcharts.SeriesData, int seriesList = [
+      charts.SeriesData, int(
+        id 'Data',
+        domainFn (Data data, _) = data.id,
+        measureFn (Data data, _) = data.value,
+        data chartData,
+      ),
+    ];
+
+    return charts.LineChart(
+      seriesList,
+      animate true,
+    );
+  }
+}
